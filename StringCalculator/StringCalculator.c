@@ -12,7 +12,7 @@ void showMenu () {
     printf("7) Insert a sub-string into another string\n");
     printf("8) Truncate a string\n");
     printf("9) Search a sub-string\n");
-    printf("10) Replace sub-string\n");
+    printf("10) Replace sub-strings\n");
 }
 
 int makeAChoice () {
