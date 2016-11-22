@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <time.h>
 
-int length = 0;
-int array[10000] = {0};
+int length = 5;
+int array[10000] = {5, 4, 223, 6, 8};
 
 const char mainMenu[] =
     "======= MENU =======\n"
@@ -12,7 +12,11 @@ const char mainMenu[] =
     "2) Generate samples\n"
     "3) Display\n"
     "4) Delete\n"
-    "5) Insert\n\n";
+    "5) Insert\n"
+    "6) Stats\n"
+    "7) Search\n"
+    "8) Identify order\n"
+    "9) Sort\n\n";
 
 const char *subMenus[] = {
     "", "",
@@ -25,10 +29,20 @@ const char *subMenus[] = {
     "1) by value\n"
     "2) by ranges\n\n",
     "0) by index\n"
-    "1) into a sorted array\n\n"
+    "1) into a sorted array\n\n",
+    "0) Max value\n"
+    "1) Min value\n"
+    "2) Average\n\n",
+    "0) Normal\n"
+    "1) Bisect\n\n",
+    "",
+    "0) Bubble Sort\n"
+    "1) Select Sort\n"
+    "2) Exchange Sort\n"
+    "3) Inverse\n\n"
 };
 
-const int ranges[6][2] = {{0}, {0}, {0, 3}, {0}, {0, 2}, {0, 1}};
+const int ranges[10][2] = {{0}, {0}, {0, 3}, {0}, {0, 2}, {0, 1}, {0, 2}, {0, 1}, {0}, {0, 3}};
 
 typedef void (*operation)();
 
@@ -151,7 +165,7 @@ void insertByIndex () {
 int getOrder () {
     int i = 0;
     while (i < length - 1 && array[i] == array[i + 1]) i++;
-    if (i == length-1) return 1;
+    if (i == length-1) return 2;
     int order = array[i] < array[i + 1] ? 1 : -1;
     for (; i < length-1; i++)
         if (array[i] != array[i+1] && array[i] < array[i + 1] ^ order > 0) return 0;
@@ -170,17 +184,130 @@ void insertIntoSorted () {
     array[i] = value;
 }
 
-const operation operations[6][4] = {
+void max () {
+    if (!length) return;
+    int result = array[0], i;
+    for (i = 1; i < length; i++) if (result < array[i]) result = array[i];
+    printf("Max: %d\n", result);
+}
+
+void min () {
+    if (!length) return;
+    int result = array[0], i;
+    for (i = 1; i < length; i++) if (result > array[i]) result = array[i];
+    printf("Min: %d\n", result);
+}
+
+void average () {
+    double sum = 0;
+    int i;
+    for (i = 0; i < length; i++) sum += array[i];
+    printf("Avg: %lf\n", sum / length);
+}
+
+void normalSearch () {
+    int value, i;
+    getValue(&value);
+    for (i = 0; i < length; i++)
+        if (array[i] == value) {
+            printf("Index: %d\n", i);
+            return;
+        }
+    printf("No found!\n");
+}
+
+int bisect (int value, int order, int l, int r) {
+    if (l == r) return array[l] == value ? l : -1;
+    int m = (l + r) >> 1;
+    if (array[m] == value) return m;
+    else if (array[m] > value ^ order < 0)
+        return bisect(value, order, l, m);
+    else
+        return bisect(value, order, m + 1, r);
+}
+
+void bisectSearch () {
+    int order = getOrder(), value;
+    if (!order) {
+        printf("UNSORTED!\n");
+        return;
+    }
+    getValue(&value);
+    printf("Result: %d\n", bisect(value, order, 0, length-1));
+}
+
+void identifyOrder () {
+    switch (getOrder()) {
+        case -1: printf("DESC\n"); break;
+        case 0: printf("UNSORTED\n"); break;
+        case 1: printf("ASC\n"); break;
+        case 2: printf("ALL EQUAL\n"); break;
+    }
+}
+
+void swap (int * a, int * b) {
+    int temp = *a;
+    *a = *b;
+    *b = temp;
+}
+
+void bubbleSort () {
+    int i, j, flag;
+    for (i = 0; i < length; i++) {
+        flag = false;
+        for (j = i; j < length-1; j++)
+            if (array[j] > array[j+1]) {
+                swap(&array[j], &array[j+1]);
+                flag = true;
+            }
+        if (!flag) break;
+    }
+    display();
+}
+
+void selectSort () {
+    int i, j;
+    for (i = 0; i < length; i++) {
+        int min = array[i], index = i;
+        for (j = i + 1; j < length; j++)
+            if (min > array[j]) {
+                min = array[j];
+                index = j;
+            }
+        swap(&array[i], &array[index]);
+    }
+    display();
+}
+
+void exchangeSort () {
+    int i, j;
+    for (i = 0; i < length-1; i++)
+        for (j = i + 1; j < length; j++)
+            if (array[i] > array[j]) swap(&array[i], &array[j]);
+    display();
+}
+
+void inverse () {
+    int i;
+    for (i = 0; i < length >> 1; i++) swap(&array[i], &array[length-1-i]);
+    display();
+}
+
+const operation operations[10][4] = {
     {halt, NULL}, {config, NULL},
     {fillWithRandom, fillWithInputs, fillWithValue, fillWithSeq},
     {display, NULL},
     {deleteByIndex, deleteByValue, deleteByRange, NULL},
-    {insertByIndex, insertIntoSorted, NULL}
+    {insertByIndex, insertIntoSorted, NULL},
+    {max, min, average, NULL},
+    {normalSearch, bisectSearch, NULL},
+    {identifyOrder, NULL},
+    {bubbleSort, selectSort, exchangeSort, inverse}
 };
 
 int main () {
     while (1) {
-        int choice = showMenuAndChoose(mainMenu, 0, 5);
+        int choice = showMenuAndChoose(mainMenu, 0, 9);
         operation func;
         if (!ranges[choice][1]) func = operations[choice][0];
         else func = operations[choice][showMenuAndChoose(subMenus[choice], ranges[choice][0], ranges[choice][1])];
