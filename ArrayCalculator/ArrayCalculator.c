@@ -253,9 +253,9 @@ void swap (int * a, int * b) {
 
 void bubbleSort () {
     int i, j, flag;
-    for (i = 0; i < length; i++) {
+    for (i = 0; i < length-1; i++) {
         flag = false;
-        for (j = i; j < length-1; j++)
+        for (j = 0; j < length-1-i; j++)
             if (array[j] > array[j+1]) {
                 swap(&array[j], &array[j+1]);
                 flag = true;
