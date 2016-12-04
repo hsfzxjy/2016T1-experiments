@@ -69,10 +69,10 @@ void halt () {
     exit(0);
 }
 
-void createFromHead () {
+void createFromTail () {
     int i;
     student* p, *p2;
-    printf("Input 3 students\n");
+    printf("Input 3 students(ordered by No.)\n");
     dispose();
     for (i = 0; i < 3; i++) {
         p2 = getStudent();
@@ -84,10 +84,10 @@ void createFromHead () {
     }
 }
 
-void createFromTail () {
+void createFromHead () {
     int i;
     student* p = 0, *p2;
-    printf("Input 3 students(ordered by No.)\n");
+    printf("Input 3 students\n");
     dispose();
     for (i = 0; i < 3; i++) {
         p2 = getStudent();
