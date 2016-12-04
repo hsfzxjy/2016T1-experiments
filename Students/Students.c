@@ -10,7 +10,7 @@ typedef struct student_ {
 
 typedef void (*operation)();
 
-#define cntMenu 6
+#define cntMenu 9
 
 const char mainMenu[] =
     "======== MENU ========\n"
@@ -19,7 +19,10 @@ const char mainMenu[] =
     "2) Print\n"
     "3) Search\n"
     "4) Insert\n"
-    "5) Stats\n\n";
+    "5) Stats\n"
+    "6) Remove\n"
+    "7) Destroy\n"
+    "8) Write out\n\n";
 
 const char *subMenus[] = {
     "",
@@ -29,10 +32,16 @@ const char *subMenus[] = {
     "", "",
     "0) by index\n"
     "1) into ordered list\n\n",
-    ""
+    "",
+    "0) by index\n"
+    "1) by No.\n\n",
+    "",
+    "0) Rewrite\n"
+    "1) Append\n"
+    "2) Reset\n\n"
 };
 
-const int ranges[cntMenu] = {0, 3, 0, 0, 2, 0};
+const int ranges[cntMenu] = {0, 3, 0, 0, 2, 0, 2, 0, 3};
 
 student* head = 0;
 
@@ -97,12 +106,16 @@ void createFromHead () {
     head = p;
 }
 
-void createFromFile () {
+FILE* getFileHandle (const char* mode) {
     char fn[256];
-    student* tp, *p = 0;
     printf("Filename: ");
     scanf("%s", fn);
-    FILE *f = fopen(fn, "r");
+    return fopen(fn, mode);
+}
+
+void createFromFile () {
+    student* tp, *p = 0;
+    FILE *f = getFileHandle("r");
     dispose();
     while (!feof(f)) {
         tp = alloc();
@@ -130,10 +143,17 @@ void search () {
 }
 
 void stats () {
-    long cnt = 0;
+    long cnt = 0, fails = 0;
+    double avg, sum = 0, max = -1;
     student* p;
-    for (p = head; p; p = p->next) cnt++;
-    printf("Count: %ld\n", cnt);
+    for (p = head; p; p = p->next) {
+        cnt++;
+        sum += p->score;
+        fails += p->score < 60;
+        if (p->score > max) max = p->score;
+    }
+    avg = cnt ? sum / cnt : 0;
+    printf("Count:\t%ld\nAvg:\t%lf\nMax:\t%lf\nFails:\t%ld\n", cnt, avg, max, fails);
 }
 
 void insert (student* prev, student* stu) {
@@ -146,11 +166,16 @@ void insert (student* prev, student* stu) {
     }
 }
 
-void insertByIndex () {
+long getIndex () {
     long index;
-    student* prev = 0, *p = head;
     printf("Index: ");
     scanf("%ld", &index);
+    return index;
+}
+
+void insertByIndex () {
+    long index = getIndex();
+    student* prev = 0, *p = head;
     while (index-->0 && p) p = (prev = p)->next;
     insert(prev, getStudent());
 }
@@ -164,12 +189,71 @@ void insertByNo () {
     insert(prev, stu);
 }
 
+void remove (student* prev) {
+    student* p;
+    if (!prev && !head) return;
+    if (!prev) {
+        p = head->next;
+        free(head);
+        head = p;
+    } else {
+        p = prev->next;
+        prev->next = p->next;
+        free(p);
+    }
+}
+
+void removeByIndex () {
+    long index = getIndex();
+    student* prev = 0, *p = head;
+    while (index-->0 && p && p->next) p = (prev = p) -> next;
+    remove(prev);
+}
+
+void removeByNo () {
+    long no;
+    printf("No.: ");
+    scanf("%ld", &no);
+    student* prev = 0, *p, *q;
+    for (p = head; p; p = p ? p -> next : p) {
+        if (p->no == no) {
+            q = p->next;
+            remove(prev);
+            p = q;
+        }
+        prev = p;
+    }
+}
+
+void write (FILE* f) {
+    student* p;
+    for (p = head; p; p = p->next)
+        fprintf(f, "%ld %s %lf\n", p->no, p->name, p->score);
+    fclose(f);
+}
+
+void rewriteFile () {
+    write(getFileHandle("w"));
+}
+
+void appendFile () {
+    write(getFileHandle("a"));
+}
+
+void resetFile () {
+    FILE* f = getFileHandle("w");
+    fclose(f);
+}
+
 const operation operations[cntMenu][3] = {
     {halt},
     {createFromHead, createFromTail, createFromFile},
     {print}, {search},
     {insertByIndex, insertByNo},
-    {stats}
+    {stats},
+    {removeByIndex, removeByNo},
+    {dispose},
+    {rewriteFile, appendFile, resetFile}
 };
 
 int main () {
