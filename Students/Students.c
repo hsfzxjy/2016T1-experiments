@@ -22,7 +22,7 @@ const char mainMenu[] =
     "5) Stats\n"
     "6) Remove\n"
     "7) Destroy\n"
-    "8) Write out\n\n";
+    "8) I/O\n\n";
 
 const char *subMenus[] = {
     "",
@@ -36,9 +36,9 @@ const char *subMenus[] = {
     "0) by index\n"
     "1) by No.\n\n",
     "",
-    "0) Rewrite\n"
+    "0) Write out\n"
     "1) Append\n"
-    "2) Reset\n\n"
+    "2) Read\n\n"
 };
 
 const int ranges[cntMenu] = {0, 3, 0, 0, 2, 0, 2, 0, 3};
@@ -126,10 +126,13 @@ void createFromFile () {
     fclose(f);
 }
 
+void printRecord (FILE* f, student* stu) {
+    fprintf(f, "%ld\t%s\t%lf\n", stu->no, stu->name, stu->score);
+}
+
 void print () {
     student* p;
-    for (p = head; p; p = p->next)
-        printf("%ld\t%s\t%lf\n", p->no, p->name, p->score);
+    for (p = head; p; p = p->next) printRecord(stdout, p);
 }
 
 void search () {
@@ -137,9 +140,7 @@ void search () {
     printf("No. to search: ");
     scanf("%ld", &no);
     student* p;
-    for (p = head; p; p = p->next)
-        if (p->no == no)
-            printf("%ld\t%s\t%lf\n", p->no, p->name, p->score);
+    for (p = head; p; p = p->next) if (p->no == no) printRecord(stdout, p);
 }
 
 void stats () {
@@ -225,23 +226,28 @@ void removeByNo () {
     }
 }
 
-void write (FILE* f) {
+void rewriteFile () {
+    FILE* f = getFileHandle("w");
     student* p;
-    for (p = head; p; p = p->next)
-        fprintf(f, "%ld %s %lf\n", p->no, p->name, p->score);
+    for (p = head; p; p = p->next) printRecord(f, p);
     fclose(f);
 }
 
-void rewriteFile () {
-    write(getFileHandle("w"));
-}
-
 void appendFile () {
-    write(getFileHandle("a"));
+    FILE* f = getFileHandle("a");
+    student* p = getStudent();
+    printRecord(f, p);
+    free(p);
+    fclose(f);
 }
 
-void resetFile () {
-    FILE* f = getFileHandle("w");
+void readFile () {
+    FILE* f = getFileHandle("r");
+    student tp;
+    while (!feof(f)) {
+        if (fscanf(f, "%ld %s %lf", &tp.no, tp.name, &tp.score) != 3) break;
+        printRecord(stdout, &tp);
+    }
     fclose(f);
 }
 
@@ -253,7 +259,7 @@ const operation operations[cntMenu][3] = {
     {stats},
     {removeByIndex, removeByNo},
     {dispose},
-    {rewriteFile, appendFile, resetFile}
+    {rewriteFile, appendFile, readFile}
 };
 
 int main () {
