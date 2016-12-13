@@ -11,8 +11,6 @@ void showMenu () {
     printf("6) Copy a string\n");
     printf("7) Insert a sub-string into another string\n");
     printf("8) Truncate a string\n");
-    printf("9) Search a sub-string\n");
-    printf("10) Replace sub-strings\n");
 }
 
 int makeAChoice () {
@@ -83,33 +81,6 @@ void substr (char* str, int pos, int n, char* result) {
     *result = 0;
 }
 
-int search (char* str1, char* str2) {
-    int pos = 0, boundary = len(str1) - len(str2);
-    while (pos <= boundary) {
-        char *p1 = str1 + pos, *p2 = str2;
-        while (*p2 && *p1 == *p2) {
-            p1++;
-            p2++;
-        }
-        if (!*p2) return pos;
-        pos++;
-    }
-    return -1;
-}
-
-void replace (char* str, char* src, char* dst) {
-    int pos, ldst = len(dst), lsrc = len(src), l = len(str);
-    int offset = ldst - lsrc;
-    char* p;
-    while ((pos = search(str, src)) >= 0) {
-        str += pos;
-        l -= pos;
-        move(str + lsrc, l - lsrc, offset);
-        p = dst;
-        while (*p) *(str++) = *(p++);
-    }
-}
-
 int main () {
     char strings[3][1024] = {0};
     int pos, n;
@@ -158,18 +129,6 @@ int main () {
                 scanf("%d %d", &pos, &n);
                 substr(strings[0], pos, n, strings[1]);
                 printf("Result: %s\n\n", strings[1]);
-                break;
-            case 9:
-                getString(1, strings[0]);
-                getString(2, strings[1]);
-                printf("Result: %d\n\n", search(strings[0], strings[1]));
-                break;
-            case 10:
-                getString(1, strings[0]);
-                getString(2, strings[1]);
-                getString(3, strings[2]);
-                replace(strings[0], strings[1], strings[2]);
-                printf("Result: %s\n\n", strings[0]);
                 break;
         }
     }
